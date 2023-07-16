@@ -211,7 +211,8 @@ def generate_bishop_moves(board, current_square):
 
     legal_moves = []
     flattened_board = []
-    for sub_array in test_board:
+    for sub_array in board:
+    # for sub_array in test_board:
         flattened_board.extend(sub_array)
     
     # flattened_board[SQUARES['e4']] = Knight('white'); flattened_board[SQUARES['f6']] = Knight('white') 
@@ -219,7 +220,7 @@ def generate_bishop_moves(board, current_square):
     # test_board = np.array(flattened_board).reshape(8,8)
      
     # Calculate the target square for a single square advance
-    # current_square = 'e3'
+    # current_square = 'c1'
     try: current_square = SQUARES[current_square]
     except: current_square = current_square
     
@@ -230,6 +231,7 @@ def generate_bishop_moves(board, current_square):
     else:
         for direction in directions:
             d_file, d_rank = direction
+            # d_file, d_rank = 1, 1
             target_square = current_square
 
             # Iterate in the current direction until we reach the edge of the board or an occupied square
@@ -239,37 +241,14 @@ def generate_bishop_moves(board, current_square):
                 if target_square < 0 or target_square >= 64:
                     break  # Stop if we reach the edge of the board
 
-                piece_on_target = board[target_square]
+                piece_on_target = flattened_board[target_square].value
 
-                if piece_on_target != 0:
-                    if piece_on_target * board[current_square] < 0:
+                if piece_on_target.value != 0:
+                    if piece_on_target.color != flattened_board[current_square].color:
                         legal_moves.append(target_square)  # Capture opponent's piece
                     break  # Stop if we encounter any piece, regardless of color
 
                 legal_moves.append(target_square)
-    
-    # Determine the direction of pawn movement based on its color
-    # direction = 1 if flattened_board[current_square].color == "white" else -1
-
-    if flattened_board[current_square].name != "knight":
-        return EMPTY
-    else:
-        offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
-        # current_square = 'c3'
-        # target_square = 'b5'
-        # target_square = SQUARES[target_square] 
-        # next(key for key, value in SQUARES.items() if value == target_square) 
-        for offset in offsets:
-            # offset = 15
-            target_square = current_square + offset
-            target_square = abs(min(max(target_square,0), 63))
-            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]
-            target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]
-
-            if abs(target_file - current_file) == 1 or abs(target_file - current_file) == 2:
-                if target_square >= 0 and target_square < 64:
-                    if flattened_board[current_square].color != flattened_board[target_square].color:
-                        legal_moves.append(target_square)
 
     legal_moves_bishop = []
     for i in range(len(legal_moves)):
