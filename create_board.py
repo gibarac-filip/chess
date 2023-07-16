@@ -1,4 +1,6 @@
+import numpy as np
 # Define the square representation using numeric codes
+""""
 class game:
     def __init__(self, winner, check_status):
         self.winner = None
@@ -6,9 +8,41 @@ class game:
     
     def announce_winner(self):
         print("winner is %s" % self.winner)
+"""
+        
+class Piece:
+    def __init__(self, color, value, name, initial):
+        self.color = color
+        self.value = value
+        self.name = name
+        self.inital = initial
+
+class Pawn(Piece):
+    def __init__(self, color):
+        super().__init__(color, 1, 'pawn', 'P')
+
+class Knight(Piece):
+    def __init__(self, color):
+        super().__init__(color, 3, 'knight', 'N')
+
+class Bishop(Piece):
+    def __init__(self, color):
+        super().__init__(color, 3, 'bishop', 'B')
+
+class Rook(Piece):
+    def __init__(self, color):
+        super().__init__(color, 5, "Rook", "R")
+
+class Queen(Piece):
+    def __init__(self, color):
+        super().__init__(color, 8, 'queen', 'Q')
+
+class King(Piece):
+    def __init__(self, color):
+        super().__init__(color, 9, 'king', 'K')
 
 def game_setup():
-    global SQUARES, FILE_MAP, EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, VALUE_MAP
+    global SQUARES, FILE_MAP, EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
     
     SQUARES = {
     'a1': 0, 'b1': 1, 'c1': 2, 'd1': 3, 'e1': 4, 'f1': 5, 'g1': 6, 'h1': 7,
@@ -33,6 +67,7 @@ def game_setup():
     #print(algebraic_notation)  # Output: 'c5'
     
     # Define the piece representation using numeric codes
+    """""
     EMPTY = 0
     PAWN = 1
     KNIGHT = 2
@@ -40,9 +75,8 @@ def game_setup():
     ROOK = 4
     QUEEN = 5
     KING = 6
-    
-    VALUE_MAP = {'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 10}
-    
+    """""
+        
     current_player = "white"
     castling_rights = {
         "white_kingside": True,
@@ -53,7 +87,17 @@ def game_setup():
     en_passant_square = None
     half_move_counter = 0
     full_move_counter = 0
-    
+    starting_board = [
+        [Rook('white'), Knight('white'), Bishop('white'), Queen('white'), King('white'), Bishop('white'), Knight('white'), Rook('white')],
+        [Pawn('white') for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Pawn('black') for _ in range(8)],
+        [Rook('black'), Knight('black'), Bishop('black'), Queen('black'), King('black'), Bishop('black'), Knight('black'), Rook('black')]
+    ]
+    """""
     starting_board = [
         [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK],
         [PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN],
@@ -64,64 +108,190 @@ def game_setup():
         [PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN],
         [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK],
     ]
+    """""
     return starting_board, current_player, castling_rights, en_passant_square, half_move_counter, full_move_counter
 
 # Define rule checks for movements
-def generate_pawn_moves(board, current_square, is_white):
-    
+#PAWN
+def generate_pawn_moves(board, current_square):
+
     legal_moves = []
     flattened_board = []
     for sub_array in board:
         flattened_board.extend(sub_array)
 
-    # Determine the direction of pawn movement based on its color
-    # is_white = True
-    direction = 1 if is_white else -1
-
     # Calculate the target square for a single square advance
-    # current_square = 'h7'
     try: current_square = SQUARES[current_square]
     except: current_square = current_square
     
-    if flattened_board[current_square] != PAWN:
+    # Determine the direction of pawn movement based on its color
+    direction = 1 if flattened_board[current_square].color == "white" else -1
+    
+    if flattened_board[current_square].name != 'pawn':
         return EMPTY
     else:
-    
         single_square = current_square + 8 * direction
 
         # Check if the single square advance is a legal move
-        if flattened_board[single_square] == 0:
+        if flattened_board[single_square].value == None:
             legal_moves.append(single_square)
 
-            # Calculate the target square for a double square advance from the initial rank
+        # Calculate the target square for a double square advance from the initial rank
         double_square = current_square + 16 * direction
 
         # Check if the double square advance is a legal move
-        if ((is_white and current_square < 32) or (not is_white and current_square >= 32 and current_square <= 55)):
-            if flattened_board[double_square] == 0:
+        if ((flattened_board[current_square].color == "white" and current_square < 32) or (not flattened_board[current_square].color == "white" and current_square >= 32 and current_square <= 55)):
+            if flattened_board[single_square].value == None:
                 legal_moves.append(double_square)
 
         # Calculate the target squares for diagonal captures
         capture_squares = [current_square + 7 * direction, current_square + 9 * direction]
-        #capture_squares = 8
+        #capture_squares = 15,17
 
         # Check if diagonal captures are legal moves
         for square in capture_squares:
-            #square = 62
+            #square = 17
             if abs(FILE_MAP[next(key for key, value in SQUARES.items() if value == abs(min(square,63)))[0]] - FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]) == 1:
                 if square >= 0 and square < 64:
-                    if (is_white and flattened_board[square] * direction > 0) or (not is_white and flattened_board[square] * direction < 0):
+                    if (flattened_board[current_square].color != flattened_board[square].color) and (flattened_board[square].value != None):
                         legal_moves.append(square)
         
-        legal_moves_notation = []
+        legal_moves_pawn = []
         for i in range(len(legal_moves)):
-            legal_moves_notation.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
+            legal_moves_pawn.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
 
-        return legal_moves_notation
+        return legal_moves_pawn
 
-generate_pawn_moves(board, 'a7', True)
-#print_board(board)
+#KNIGHT
+def generate_knight_moves(board, current_square):
 
+    legal_moves = []
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    
+    # flattened_board[SQUARES['e4']] = Knight('white'); flattened_board[SQUARES['f6']] = Knight('white') 
+    # flattened_board[SQUARES['c3']] = Knight('black'); flattened_board[SQUARES['b5']] = Knight('black')
+    # test_board = np.array(flattened_board).reshape(8,8)
+     
+    # Calculate the target square for a single square advance
+    try: current_square = SQUARES[current_square]
+    except: current_square = current_square
+    
+    if flattened_board[current_square].name != "knight":
+        return EMPTY
+    else:
+        offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
+        # current_square = 'c3'
+        # target_square = 'b5'
+        # target_square = SQUARES[target_square] 
+        # next(key for key, value in SQUARES.items() if value == target_square) 
+        for offset in offsets:
+            # offset = 15
+            target_square = current_square + offset
+            target_square = abs(min(max(target_square,0), 63))
+            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]
+            target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]
+
+            if abs(target_file - current_file) == 1 or abs(target_file - current_file) == 2:
+                if target_square >= 0 and target_square < 64:
+                    if flattened_board[current_square].color != flattened_board[target_square].color:
+                        legal_moves.append(target_square)
+
+    legal_moves_knight = []
+    for i in range(len(legal_moves)):
+        legal_moves_knight.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
+
+    return legal_moves_knight
+
+generate_knight_moves(test_board, 'b1')
+
+#BISHOP
+def generate_bishop_moves(board, current_square):
+
+    legal_moves = []
+    flattened_board = []
+    for sub_array in test_board:
+        flattened_board.extend(sub_array)
+    
+    # flattened_board[SQUARES['e4']] = Knight('white'); flattened_board[SQUARES['f6']] = Knight('white') 
+    # flattened_board[SQUARES['c3']] = Knight('black'); flattened_board[SQUARES['b5']] = Knight('black')
+    # test_board = np.array(flattened_board).reshape(8,8)
+     
+    # Calculate the target square for a single square advance
+    # current_square = 'e3'
+    try: current_square = SQUARES[current_square]
+    except: current_square = current_square
+    
+    directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]  # Four diagonal directions
+    
+    if flattened_board[current_square].name != "bishop":
+        return EMPTY
+    else:
+        for direction in directions:
+            d_file, d_rank = direction
+            target_square = current_square
+
+            # Iterate in the current direction until we reach the edge of the board or an occupied square
+            while True:
+                target_square += d_file * 8 + d_rank
+
+                if target_square < 0 or target_square >= 64:
+                    break  # Stop if we reach the edge of the board
+
+                piece_on_target = board[target_square]
+
+                if piece_on_target != 0:
+                    if piece_on_target * board[current_square] < 0:
+                        legal_moves.append(target_square)  # Capture opponent's piece
+                    break  # Stop if we encounter any piece, regardless of color
+
+                legal_moves.append(target_square)
+    
+    # Determine the direction of pawn movement based on its color
+    # direction = 1 if flattened_board[current_square].color == "white" else -1
+
+    if flattened_board[current_square].name != "knight":
+        return EMPTY
+    else:
+        offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
+        # current_square = 'c3'
+        # target_square = 'b5'
+        # target_square = SQUARES[target_square] 
+        # next(key for key, value in SQUARES.items() if value == target_square) 
+        for offset in offsets:
+            # offset = 15
+            target_square = current_square + offset
+            target_square = abs(min(max(target_square,0), 63))
+            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]
+            target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]
+
+            if abs(target_file - current_file) == 1 or abs(target_file - current_file) == 2:
+                if target_square >= 0 and target_square < 64:
+                    if flattened_board[current_square].color != flattened_board[target_square].color:
+                        legal_moves.append(target_square)
+
+    legal_moves_bishop = []
+    for i in range(len(legal_moves)):
+        legal_moves_bishop.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
+
+    return legal_moves_bishop
+
+generate_bishop_moves(test_board, 'c1')
+test_board = [
+        [Rook('white'), Knight('white'), Bishop('white'), Queen('white'), King('white'), Bishop('white'), Knight('white'), Rook('white')],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Rook('black'), Knight('black'), Bishop('black'), Queen('black'), King('black'), Bishop('black'), Knight('black'), Rook('black')]
+    ]
+print_board(test_board)
+#print_board(starting_board)
+
+"""""
 # Define rule checks for movements
 def piece_movement_rules(move, piece, is_white):
 
@@ -235,8 +405,26 @@ def print_board(board):
     for rank in range(8):
         for file in range(8):
             piece = board[rank][file]
-            print(piece, end=" ")
+            print(piece, end="")
         print()
+"""""
+        
+def print_board(board):
+    for rank in range(8):
+        for file in range(8):
+            piece = board[rank][file]
+            #if piece.color == 'white':
+            #    print(' W', end='')
+            #elif piece.color == 'black':
+            #    print(' B', end='')
+            #else:
+            #    print('', end='')
+            if piece.value == None: 
+                piece.inital = 0
+            print(piece.inital, end="  ")
+        print()
+
+print_board(starting_board)
 
 def reset_counters(h, f):
     h = 0
