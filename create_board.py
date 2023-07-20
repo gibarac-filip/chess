@@ -200,8 +200,7 @@ def generate_bishop_moves(board, current_square):
 
     legal_moves = []
     flattened_board = []
-    #for sub_array in board:
-    for sub_array in test_board:
+    for sub_array in board:
         flattened_board.extend(sub_array)
     
     # flattened_board[SQUARES['d4']] = Bishop('white'); flattened_board[SQUARES['e4']] = Bishop('white') 
@@ -216,10 +215,8 @@ def generate_bishop_moves(board, current_square):
     if flattened_board[current_square].name != "bishop":
         return []
     else:
-        #directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
-        directions = [(1, 1), (-1, -1)]
+        directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
         for direction in directions:
-            #target_square = SQUARES['f6']
 
             d_file, d_rank = direction
             # d_file, d_rank = 1,1
@@ -237,9 +234,73 @@ def generate_bishop_moves(board, current_square):
                 try: target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])
                 except: target_rank = -1
                 #cannot be transported to the other side of the map
-                if (target_square < 0 or target_square >= 64) or (d_rank != (current_file- target_file)/(current_rank-target_rank)):
-                    print("break point 1")
+                if (target_square < 0 or target_square >= 64) or (abs((current_file - target_file) / (current_rank - target_rank)) != 1):
                     i=1
+                    break
+                else:
+                    piece_on_target = flattened_board[target_square]
+                    if piece_on_target.value == 0 :
+                        legal_moves.append(target_square)
+                    elif piece_on_target.value != 0 and (piece_on_target.color != flattened_board[current_square].color):
+                        legal_moves.append(target_square)
+                        i=1
+                        break
+                    elif piece_on_target.value != 0 and (piece_on_target.color == flattened_board[current_square].color):
+                        i=1
+                        break
+                    else: 
+                        i=1
+                        break
+
+        legal_moves_bishop = [next(key for key, value in SQUARES.items() if value == square) for square in sorted(legal_moves)]
+
+        return legal_moves_bishop
+
+generate_bishop_moves(test_board, 'd4')
+
+#ROOK
+def generate_rook_moves(board, current_square):
+
+    legal_moves = []
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    
+    # flattened_board[SQUARES['d4']] = Rook('white'); flattened_board[SQUARES['e4']] = Rook('white') 
+    # flattened_board[SQUARES['d5']] = Rook('black'); flattened_board[SQUARES['e5']] = Rook('black')
+    # test_board = np.array(flattened_board).reshape(8,8)
+    # board = test_board
+     
+    # Calculate the target square for a single square advance
+    # current_square = 'd4'
+    try: current_square = SQUARES[current_square]
+    except: current_square = current_square
+    
+    if flattened_board[current_square].name != "Rook":
+        return []
+    else:
+        directions = [(1, 0), (-1,0), (0,1), (0,-1)]
+        for direction in directions:
+
+            d_file, d_rank = direction
+            # d_file, d_rank = 1,1
+            
+            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]+1
+            current_rank = int(next(key for key, value in SQUARES.items() if value == current_square)[1])    
+            
+            target_square = current_square
+            #target_square = 36
+            iterative_index = 0
+            while iterative_index == 0:
+                target_square += d_file * 8 + d_rank
+                try: target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]+1
+                except: target_file = -1
+                try: target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])
+                except: target_rank = -1
+                #cannot be transported to the other side of the map
+                if (target_square < 0 or target_square >= 64) or (target_file != current_file and target_rank != current_rank):
+                    i=1
+                    print("break point 1")
                     break
                 else:
                     piece_on_target = flattened_board[target_square]
@@ -254,37 +315,36 @@ def generate_bishop_moves(board, current_square):
                         print("break point 3")
                         i=1
                         break
-                    else: 
+                    else:
                         print("break point 4")
                         i=1
                         break
 
-        legal_moves_bishop = []
-        for i in range(len(legal_moves)):
-            legal_moves_bishop.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
+        legal_moves_rook = [next(key for key, value in SQUARES.items() if value == square) for square in sorted(legal_moves)]
 
-        return list(set(legal_moves_bishop))
+        return legal_moves_rook
 
-generate_bishop_moves(test_board, 'd4')
+generate_rook_moves(test_board, 'd4')
+
 test_board = [
         [Rook('white'), Knight('white'), Bishop('white'), Queen('white'), King('white'), Bishop('white'), Knight('white'), Rook('white')],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
         [Rook('black'), Knight('black'), Bishop('black'), Queen('black'), King('black'), Bishop('black'), Knight('black'), Rook('black')]
     ]
 test_board = [
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)],
-        [Piece(None, None, None, 0) for _ in range(8)]
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)],
+        [Piece(None, 0, None, '_') for _ in range(8)]
     ]
 print_board(board)
 # print_board(starting_board)
