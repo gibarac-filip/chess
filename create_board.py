@@ -42,11 +42,11 @@ class King(Piece):
         super().__init__(color, 9, 'king', 'K')
 
 def game_setup():
-    global SQUARES, FILE_MAP, EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
+    global SQUARES, FILE_MAP
     
     SQUARES = {
-    'a1': 0, 'b1': 1, 'c1': 2, 'd1': 3, 'e1': 4, 'f1': 5, 'g1': 6, 'h1': 7,
-    'a2': 8, 'b2': 9, 'c2': 10, 'd2': 11, 'e2': 12, 'f2': 13, 'g2': 14, 'h2': 15,
+    'a1': 0,  'b1': 1,  'c1': 2,  'd1': 3,  'e1': 4,  'f1': 5,  'g1': 6,  'h1': 7,
+    'a2': 8,  'b2': 9,  'c2': 10, 'd2': 11, 'e2': 12, 'f2': 13, 'g2': 14, 'h2': 15,
     'a3': 16, 'b3': 17, 'c3': 18, 'd3': 19, 'e3': 20, 'f3': 21, 'g3': 22, 'h3': 23,
     'a4': 24, 'b4': 25, 'c4': 26, 'd4': 27, 'e4': 28, 'f4': 29, 'g4': 30, 'h4': 31,
     'a5': 32, 'b5': 33, 'c5': 34, 'd5': 35, 'e5': 36, 'f5': 37, 'g5': 38, 'h5': 39,
@@ -97,18 +97,7 @@ def game_setup():
         [Pawn('black') for _ in range(8)],
         [Rook('black'), Knight('black'), Bishop('black'), Queen('black'), King('black'), Bishop('black'), Knight('black'), Rook('black')]
     ]
-    """""
-    starting_board = [
-        [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK],
-        [PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
-        [PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN],
-        [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK],
-    ]
-    """""
+
     return starting_board, current_player, castling_rights, en_passant_square, half_move_counter, full_move_counter
 
 # Define rule checks for movements
@@ -128,7 +117,7 @@ def generate_pawn_moves(board, current_square):
     direction = 1 if flattened_board[current_square].color == "white" else -1
     
     if flattened_board[current_square].name != 'pawn':
-        return EMPTY
+        return []
     else:
         single_square = current_square + 8 * direction
 
@@ -179,7 +168,7 @@ def generate_knight_moves(board, current_square):
     except: current_square = current_square
     
     if flattened_board[current_square].name != "knight":
-        return EMPTY
+        return []
     else:
         offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
         # current_square = 'c3'
@@ -211,52 +200,72 @@ def generate_bishop_moves(board, current_square):
 
     legal_moves = []
     flattened_board = []
-    for sub_array in board:
-    # for sub_array in test_board:
+    #for sub_array in board:
+    for sub_array in test_board:
         flattened_board.extend(sub_array)
     
-    # flattened_board[SQUARES['e4']] = Knight('white'); flattened_board[SQUARES['f6']] = Knight('white') 
-    # flattened_board[SQUARES['c3']] = Knight('black'); flattened_board[SQUARES['b5']] = Knight('black')
+    # flattened_board[SQUARES['d4']] = Bishop('white'); flattened_board[SQUARES['e4']] = Bishop('white') 
+    # flattened_board[SQUARES['d5']] = Bishop('black'); flattened_board[SQUARES['e5']] = Bishop('black')
     # test_board = np.array(flattened_board).reshape(8,8)
      
     # Calculate the target square for a single square advance
-    # current_square = 'c1'
+    # current_square = 'd4'
     try: current_square = SQUARES[current_square]
     except: current_square = current_square
     
-    directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]  # Four diagonal directions
-    
     if flattened_board[current_square].name != "bishop":
-        return EMPTY
+        return []
     else:
+        #directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+        directions = [(1, 1), (-1, -1)]
         for direction in directions:
+            #target_square = SQUARES['f6']
+
             d_file, d_rank = direction
-            # d_file, d_rank = 1, 1
+            # d_file, d_rank = 1,1
+            
+            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]+1
+            current_rank = int(next(key for key, value in SQUARES.items() if value == current_square)[1])    
+            
             target_square = current_square
-
-            # Iterate in the current direction until we reach the edge of the board or an occupied square
-            while True:
+            #target_square = 36
+            iterative_index = 0
+            while iterative_index == 0:
                 target_square += d_file * 8 + d_rank
+                try: target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]+1
+                except: target_file = -1
+                try: target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])
+                except: target_rank = -1
+                #cannot be transported to the other side of the map
+                if (target_square < 0 or target_square >= 64) or (d_rank != (current_file- target_file)/(current_rank-target_rank)):
+                    print("break point 1")
+                    i=1
+                    break
+                else:
+                    piece_on_target = flattened_board[target_square]
+                    if piece_on_target.value == 0 :
+                        legal_moves.append(target_square)
+                    elif piece_on_target.value != 0 and (piece_on_target.color != flattened_board[current_square].color):
+                        legal_moves.append(target_square)
+                        print("break point 2")
+                        i=1
+                        break
+                    elif piece_on_target.value != 0 and (piece_on_target.color == flattened_board[current_square].color):
+                        print("break point 3")
+                        i=1
+                        break
+                    else: 
+                        print("break point 4")
+                        i=1
+                        break
 
-                if target_square < 0 or target_square >= 64:
-                    break  # Stop if we reach the edge of the board
+        legal_moves_bishop = []
+        for i in range(len(legal_moves)):
+            legal_moves_bishop.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
 
-                piece_on_target = flattened_board[target_square].value
+        return list(set(legal_moves_bishop))
 
-                if piece_on_target.value != 0:
-                    if piece_on_target.color != flattened_board[current_square].color:
-                        legal_moves.append(target_square)  # Capture opponent's piece
-                    break  # Stop if we encounter any piece, regardless of color
-
-                legal_moves.append(target_square)
-
-    legal_moves_bishop = []
-    for i in range(len(legal_moves)):
-        legal_moves_bishop.append(next(key for key, value in SQUARES.items() if value == legal_moves[i]))
-
-    return legal_moves_bishop
-
-generate_bishop_moves(test_board, 'c1')
+generate_bishop_moves(test_board, 'd4')
 test_board = [
         [Rook('white'), Knight('white'), Bishop('white'), Queen('white'), King('white'), Bishop('white'), Knight('white'), Rook('white')],
         [Piece(None, None, None, 0) for _ in range(8)],
@@ -267,8 +276,19 @@ test_board = [
         [Piece(None, None, None, 0) for _ in range(8)],
         [Rook('black'), Knight('black'), Bishop('black'), Queen('black'), King('black'), Bishop('black'), Knight('black'), Rook('black')]
     ]
-print_board(test_board)
-#print_board(starting_board)
+test_board = [
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)],
+        [Piece(None, None, None, 0) for _ in range(8)]
+    ]
+print_board(board)
+# print_board(starting_board)
+# print_board(test_board)
 
 """""
 # Define rule checks for movements
