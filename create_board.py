@@ -16,18 +16,19 @@ class Piece:
         self.value = value
         self.name = name
         self.inital = initial
+        self.has_moved = False
 
 class Pawn(Piece):
     def __init__(self, color):
-        super().__init__(color, 1, 'pawn', 'P')
+        super().__init__(color, 1, 'Pawn', 'P')
 
 class Knight(Piece):
     def __init__(self, color):
-        super().__init__(color, 3, 'knight', 'N')
+        super().__init__(color, 3, 'Knight', 'N')
 
 class Bishop(Piece):
     def __init__(self, color):
-        super().__init__(color, 3, 'bishop', 'B')
+        super().__init__(color, 3, 'Bishop', 'B')
 
 class Rook(Piece):
     def __init__(self, color):
@@ -35,11 +36,11 @@ class Rook(Piece):
 
 class Queen(Piece):
     def __init__(self, color):
-        super().__init__(color, 8, 'queen', 'Q')
+        super().__init__(color, 8, 'Queen', 'Q')
 
 class King(Piece):
     def __init__(self, color):
-        super().__init__(color, 9, 'king', 'K')
+        super().__init__(color, 9, 'King', 'K')
 
 def game_setup():
     global SQUARES, FILE_MAP
@@ -65,17 +66,6 @@ def game_setup():
     #numeric_code = 34
     #algebraic_notation = next(key for key, value in SQUARES.items() if value == numeric_code)
     #print(algebraic_notation)  # Output: 'c5'
-    
-    # Define the piece representation using numeric codes
-    """""
-    EMPTY = 0
-    PAWN = 1
-    KNIGHT = 2
-    BISHOP = 3
-    ROOK = 4
-    QUEEN = 5
-    KING = 6
-    """""
         
     current_player = "white"
     castling_rights = {
@@ -116,7 +106,7 @@ def generate_pawn_moves(board, current_square):
     # Determine the direction of pawn movement based on its color
     direction = 1 if flattened_board[current_square].color == "white" else -1
     
-    if flattened_board[current_square].name != 'pawn':
+    if flattened_board[current_square].name != 'Pawn':
         return []
     else:
         single_square = current_square + 8 * direction
@@ -167,7 +157,7 @@ def generate_knight_moves(board, current_square):
     try: current_square = SQUARES[current_square]
     except: current_square = current_square
     
-    if flattened_board[current_square].name != "knight":
+    if flattened_board[current_square].name != "Knight":
         return []
     else:
         offsets = [-17, -15, -10, -6, 6, 10, 15, 17]
@@ -212,7 +202,7 @@ def generate_bishop_moves(board, current_square):
     try: current_square = SQUARES[current_square]
     except: current_square = current_square
     
-    if flattened_board[current_square].name != "bishop":
+    if flattened_board[current_square].name != "Bishop":
         return []
     else:
         directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -299,8 +289,7 @@ def generate_rook_moves(board, current_square):
                 except: target_rank = -1
                 #cannot be transported to the other side of the map
                 if (target_square < 0 or target_square >= 64) or (target_file != current_file and target_rank != current_rank):
-                    i=1
-                    print("break point 1")
+                    iterative_index=1
                     break
                 else:
                     piece_on_target = flattened_board[target_square]
@@ -308,16 +297,13 @@ def generate_rook_moves(board, current_square):
                         legal_moves.append(target_square)
                     elif piece_on_target.value != 0 and (piece_on_target.color != flattened_board[current_square].color):
                         legal_moves.append(target_square)
-                        print("break point 2")
-                        i=1
+                        iterative_index=1
                         break
                     elif piece_on_target.value != 0 and (piece_on_target.color == flattened_board[current_square].color):
-                        print("break point 3")
-                        i=1
+                        iterative_index=1
                         break
                     else:
-                        print("break point 4")
-                        i=1
+                        iterative_index=1
                         break
 
         legal_moves_rook = [next(key for key, value in SQUARES.items() if value == square) for square in sorted(legal_moves)]
@@ -325,6 +311,263 @@ def generate_rook_moves(board, current_square):
         return legal_moves_rook
 
 generate_rook_moves(test_board, 'd4')
+
+#QUEEN
+def generate_queen_moves(board, current_square):
+
+    legal_moves = []
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    
+    # flattened_board[SQUARES['d4']] = Queen('white'); flattened_board[SQUARES['e4']] = Queen('white') 
+    # flattened_board[SQUARES['d5']] = Queen('black'); flattened_board[SQUARES['e5']] = Queen('black')
+    # test_board = np.array(flattened_board).reshape(8,8)
+    # board = test_board
+     
+    # Calculate the target square for a single square advance
+    # current_square = 'd4'
+    try: current_square = SQUARES[current_square]
+    except: current_square = current_square
+    
+    if flattened_board[current_square].name != "Queen":
+        return []
+    else:
+        directions = [(1, 0), (-1,0), (0,1), (0,-1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+        for direction in directions:
+
+            d_file, d_rank = direction
+            # d_file, d_rank = 1,1
+            
+            current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]+1
+            current_rank = int(next(key for key, value in SQUARES.items() if value == current_square)[1])    
+            
+            target_square = current_square
+            #target_square = 36
+            iterative_index = 0
+            while iterative_index == 0:
+                target_square += d_file * 8 + d_rank
+                try: target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]+1
+                except: target_file = -1
+                try: target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])
+                except: target_rank = -1
+                #cannot be transported to the other side of the map
+                if (target_square < 0 or target_square >= 64) or (target_file != current_file and target_rank != current_rank and abs((current_file - target_file) / (current_rank - target_rank)) != 1):
+                    iterative_index=1
+                    break
+                else:
+                    piece_on_target = flattened_board[target_square]
+                    if piece_on_target.value == 0 :
+                        legal_moves.append(target_square)
+                    elif piece_on_target.value != 0 and (piece_on_target.color != flattened_board[current_square].color):
+                        legal_moves.append(target_square)
+                        iterative_index=1
+                        break
+                    elif piece_on_target.value != 0 and (piece_on_target.color == flattened_board[current_square].color):
+                        iterative_index=1
+                        break
+                    else:
+                        iterative_index=1
+                        break
+
+        legal_moves_queen = [next(key for key, value in SQUARES.items() if value == square) for square in sorted(legal_moves)]
+
+        return legal_moves_queen
+
+generate_queen_moves(test_board, 'd4')
+
+#KING
+#Supporting King Functions: is_king_square_attacked, is_castling_allowed, get_castling_moves
+def is_king_square_attacked(board, target_square, attacker_color):
+    #is_king_square_attacked(board, 1, flattened_board[current_square].color)
+    #is_king_square_attacked(board, 8, flattened_board[current_square].color)
+    #is_king_square_attacked(board, 9, flattened_board[current_square].color)
+
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    #attacker_color = flattened_board[current_square].color
+    attacker_color = "black" if attacker_color == "white" else "white"
+    #target_square = 1
+
+    while True:
+        for i in range(64):
+            legal_pawn_moves = generate_pawn_moves(board, i)
+            legal_bishop_moves = generate_bishop_moves(board, i)
+            legal_knight_moves = generate_knight_moves(board, i)
+            legal_rook_moves = generate_rook_moves(board, i)
+            legal_queen_moves = generate_queen_moves(board, i)
+            target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]+1
+            target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])  
+            if next(key for key, value in SQUARES.items() if value == target_square) in legal_pawn_moves and flattened_board[i].color == attacker_color:
+                print("pawn from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                return True
+            if next(key for key, value in SQUARES.items() if value == target_square) in legal_bishop_moves and flattened_board[i].color == attacker_color:
+                print("bishop from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                return True
+            if next(key for key, value in SQUARES.items() if value == target_square) in legal_knight_moves and flattened_board[i].color == attacker_color:
+                print("knight from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                return True
+            if next(key for key, value in SQUARES.items() if value == target_square) in legal_rook_moves and flattened_board[i].color == attacker_color:
+                print("rook from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                return True
+            if next(key for key, value in SQUARES.items() if value == target_square) in legal_queen_moves and flattened_board[i].color == attacker_color:
+                print("queen from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                return True
+            if flattened_board[i].name == "King" and flattened_board[i].color == attacker_color:
+                king_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == i)[0]]+1
+                king_rank = int(next(key for key, value in SQUARES.items() if value == i)[1])
+                if abs(king_file-target_file) <= 1 and abs(king_rank-target_rank) <= 1:
+                    print("king from", next(key for key, value in SQUARES.items() if value == i), "attacking king")
+                    return True
+        return False
+                    
+
+def is_castling_allowed(board, current_square):
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    try:
+        current_square = SQUARES[current_square]
+    except KeyError:
+        current_square = current_square
+
+    if flattened_board[current_square].name != "King":
+        return False
+
+    # Check if the king has not moved
+    if flattened_board[current_square].has_moved:
+        return False
+
+    # Determine the castling direction and the squares involved
+    if flattened_board[current_square].color == "white":
+        king_row, rook1_col, rook2_col = 7, 0, 7
+    else:
+        king_row, rook1_col, rook2_col = 0, 0, 7
+
+    # Check if the chosen rook has not moved
+    rook1_square = king_row * 8 + rook1_col
+    rook2_square = king_row * 8 + rook2_col
+
+    if flattened_board[rook1_square].name != "Rook" or flattened_board[rook2_square].name != "Rook":
+        return False
+
+    if flattened_board[rook1_square].has_moved or flattened_board[rook2_square].has_moved:
+        return False
+
+    # Check if squares between the king and rook are empty
+    empty_squares = [current_square + i for i in range(1, 3)]
+    if any(flattened_board[square].value != 0 for square in empty_squares):
+        return False
+
+    # Check if squares the king moves through are not under attack
+    squares_under_attack = [current_square + i for i in range(1, 4)]
+    if any(is_king_square_attacked(board, square, flattened_board[current_square].color) for square in squares_under_attack):
+        return False
+
+    return True
+
+def get_castling_moves(board, current_square):
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    try:
+        current_square = SQUARES[current_square]
+    except KeyError:
+        current_square = current_square
+
+    if flattened_board[current_square].name != "King":
+        return []
+
+    castling_moves = []
+    king_row = current_square // 8
+
+    # Determine the castling direction and squares involved
+    if flattened_board[current_square].color == "white":
+        king_col, rook_col = 4, 0
+    else:
+        king_col, rook_col = 4, 7
+        
+    if rook_col == 0:
+        castling_moves.append(current_square - 2)  # Queenside castling
+    else:
+        castling_moves.append(current_square + 2)  # Kingside castling
+
+    return castling_moves
+
+def generate_king_moves(board, current_square):
+
+    legal_moves = []
+    flattened_board = []
+    for sub_array in board:
+        flattened_board.extend(sub_array)
+    
+    # flattened_board[SQUARES['b8']] = Rook('black'); flattened_board[SQUARES['c3']] = King('black') 
+    # flattened_board[SQUARES['a1']] = King('white')
+    # board = np.array(flattened_board).reshape(8,8)
+     
+    # Calculate the target square for a single square advance
+    # current_square = 'a1'
+    try: current_square = SQUARES[current_square]
+    except: current_square = current_square
+    
+    current_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == current_square)[0]]+1
+    current_rank = int(next(key for key, value in SQUARES.items() if value == current_square)[1])    
+    
+    if flattened_board[current_square].name != "King":
+        return []
+    else:
+        directions = [(1, 0), (-1,0), (0,1), (0,-1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+        for direction in directions:
+
+            d_file, d_rank = direction
+            # d_file, d_rank = 1,1   
+            
+            target_square = current_square
+            # target_square = 1
+            # next(key for key, value in SQUARES.items() if value == target_square)
+            while True:
+                target_square += d_file * 8 + d_rank
+                try: target_file = FILE_MAP[next(key for key, value in SQUARES.items() if value == target_square)[0]]+1
+                except: target_file = -1
+                try: target_rank = int(next(key for key, value in SQUARES.items() if value == target_square)[1])
+                except: target_rank = -1
+                #cannot be transported to the other side of the map
+                if (target_square < 0 or target_square >= 64):
+                    print("break point 1")
+                    break
+                elif is_castling_allowed(board, current_square):
+                    # You'll need to implement the is_castling_allowed function to check if castling is allowed
+                    castling_moves = get_castling_moves(board, current_square)
+                    legal_moves.extend(castling_moves)
+                    print("adding castling moves?")
+                else:
+                    piece_on_target = flattened_board[target_square]
+                    if piece_on_target.value == 0:
+                        # is_king_square_attacked(board, 1, flattened_board[current_square].color) False
+                        # is_king_square_attacked(board, 8, flattened_board[current_square].color) False, needs to be True
+                        # is_king_square_attacked(board, 9, flattened_board[current_square].color) False, needs to be True
+                        if not is_king_square_attacked(board, target_square, flattened_board[current_square].color) and abs(target_file - current_file) <= 1 and abs(target_rank - current_rank) <=1:
+                            legal_moves.append(target_square)
+                            print("adding not attacked empty square")
+                    elif piece_on_target.value != 0 and (piece_on_target.color != flattened_board[current_square].color):
+                        if not is_king_square_attacked(board, target_square, flattened_board[current_square].color) and abs(target_file - current_file) <= 1 and abs(target_rank - current_rank) <=1:
+                            legal_moves.append(target_square)
+                            print("add close empty square")
+                            break
+                    elif piece_on_target.value != 0 and (piece_on_target.color == flattened_board[current_square].color):
+                        print("break point 3")
+                        break
+                    else:
+                        print("break point 4")
+                        break
+        
+        # sorted(legal_moves)
+        legal_moves_king = [next(key for key, value in SQUARES.items() if value == square) for square in sorted(legal_moves)]
+
+        return legal_moves_king
+
+legal_moves_king(test_board, 'd4')
 
 test_board = [
         [Rook('white'), Knight('white'), Bishop('white'), Queen('white'), King('white'), Bishop('white'), Knight('white'), Rook('white')],
@@ -471,19 +714,11 @@ def print_board(board):
 def print_board(board):
     for rank in range(8):
         for file in range(8):
-            piece = board[rank][file]
-            #if piece.color == 'white':
-            #    print(' W', end='')
-            #elif piece.color == 'black':
-            #    print(' B', end='')
-            #else:
-            #    print('', end='')
-            if piece.value == None: 
-                piece.inital = 0
+            piece = board[8-rank-1][file]
             print(piece.inital, end="  ")
         print()
 
-print_board(starting_board)
+print_board(board)
 
 def reset_counters(h, f):
     h = 0
